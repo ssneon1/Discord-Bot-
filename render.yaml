@@ -1,0 +1,12 @@
+services:
+  - type: worker
+    name: discord-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:run -c gunicorn.conf.py
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: AIML_API_KEY
+        sync: false
+        

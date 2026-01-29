@@ -1,0 +1,1 @@
+worker: gunicorn main:run -c gunicorn.conf.py
