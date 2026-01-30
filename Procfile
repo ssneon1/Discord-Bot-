@@ -1,1 +1,1 @@
-worker: gunicorn main:run -c gunicorn.conf.py
+worker: python start_render.py
