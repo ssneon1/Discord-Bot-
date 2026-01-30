@@ -1,6 +1,3 @@
-# ============================
-# Imports & Setup
-# ============================
 
 
 import asyncio
@@ -32,6 +29,7 @@ except ImportError:
 import pytz
 from datetime import datetime, time as dtime
 from openai import OpenAI
+from huggingface_hub import InferenceClient
 
 load_dotenv()
 
@@ -80,14 +78,20 @@ else:
     
     bot = DummyBot()
 
-# Initialize OpenAI client after loading environment variables
+# Initialize Hugging Face client after loading environment variables
 try:
-    client = OpenAI(
-        base_url="https://api.aimlapi.com/v1",
-        api_key=os.getenv("AIML_API_KEY", "Bearer <YOUR_API_KEY>"),
-    )
+    hf_token = os.getenv("HUGGING_FACE_TOKEN")
+    if hf_token and hf_token != "your_hugging_face_token_here":
+        client = InferenceClient(
+            model="meta-llama/Llama-3.2-1B-Instruct",
+            token=hf_token
+        )
+        print("✅ Hugging Face client initialized successfully")
+    else:
+        print("⚠️ Hugging Face token not found. Using fallback responses.")
+        client = None
 except Exception as e:
-    print(f"Warning: Could not initialize OpenAI client: {e}")
+    print(f"Warning: Could not initialize Hugging Face client: {e}")
     client = None
 
 # Set your timezone (India Standard Time)
@@ -340,18 +344,17 @@ funny_replies = {
 async def generate_friendly_reply_with_ai(trigger: str, author_mention: str) -> str:
     """Generate a friendly reply using AI"""
     if client is None:
-        # Fallback to simple responses
-        fallback_responses = {
-            "greeting": [f"Hey {author_mention}, how's it going? 😊", f"Hi there {author_mention}! What's new? 👋", f"Hello {author_mention}! Hope you're having a great day! 😄"],
-            "how_are_you": [f"I'm doing great, thanks for asking {author_mention}! How about you?", f"All good here {author_mention}! How are things on your side?"],
-            "bye": [f"See you later {author_mention}! Take care! 👋", f"Bye {author_mention}! Have a great day! 😊"]
-        }
-        category = "greeting"  # default
-        if "how are" in trigger or "kaise" in trigger:
-            category = "how_are_you"
-        elif "bye" in trigger or "goodbye" in trigger or "gn" in trigger:
-            category = "bye"
-        return random.choice(fallback_responses[category])
+        # Enhanced fallback with more variety and humor
+        enhanced_fallbacks = [
+            f"Hey {author_mention}! 👋 What's crackin' my dude? Ready to make this server lit or what? 🔥",
+            f"Yo {author_mention}! Wassup fam? Hope you're having a day better than my WiFi connection! 😂📶",
+            f"Hello there {author_mention}! How's life treating you? Hope it's going smoother than butter on hot toast! 🧈😊",
+            f"Hi {author_mention}! What's good? Ready to drop some knowledge bombs or just vibe? 💣💥",
+            f"Hey {author_mention}! Long time no see! You been ghosting us or just busy being awesome? 👻✨",
+            f"Sup {author_mention}! Hope your day is going better than a TikTok dance trend! 🕺📱",
+            f"Hello {author_mention}! Ready to turn this chat into a party or should I start the music? 🎉🎵"
+        ]
+        return random.choice(enhanced_fallbacks)
     
     try:
         # Vary the prompt to make responses less predictable and more human-like
@@ -365,15 +368,12 @@ async def generate_friendly_reply_with_ai(trigger: str, author_mention: str) -> 
         ]
         selected_prompt = random.choice(human_like_prompts)
         
-        response = client.chat.completions.create(
-            model="google/gemma-3n-e4b-it",
-            messages=[{
-                "role": "user",
-                "content": selected_prompt
-            }],
-            temperature=0.95,  # Increased for more variation
+        # Use Hugging Face Inference API (conversational)
+        response = client.chat_completion(
+            messages=[{"role": "user", "content": selected_prompt}],
             max_tokens=150,
-            top_p=0.98,  # Increased for more diversity
+            temperature=0.95,
+            top_p=0.98,
         )
         
         reply = response.choices[0].message.content.strip()
@@ -466,7 +466,17 @@ fallback_replies = [
 async def generate_fallback_reply_with_ai(message_content: str) -> str:
     """Generate a fallback reply using AI"""
     if client is None:
-        return random.choice(fallback_replies)
+        # Enhanced fallback with more personality and humor
+        enhanced_fallbacks = [
+            "That's super interesting! Tell me more about that - I'm all ears! 👂✨",
+            "Wow, you just dropped some serious knowledge! Mind blown! 🤯💥",
+            "I love how you think! That's actually brilliant! 🧠💡",
+            "Okay but can we talk about how cool that idea is for a sec? Amazing! ✨🔥",
+            "You always come through with the good stuff! Love your energy! 💫😊",
+            "That's the kind of thing that makes conversations worth having! Thanks for sharing! 🙌",
+            "Bro, your brain works in mysterious and wonderful ways! Respect! 🙏😎"
+        ]
+        return random.choice(enhanced_fallbacks)
     
     try:
         # Vary the prompt to make responses less predictable and more human-like
@@ -480,15 +490,12 @@ async def generate_fallback_reply_with_ai(message_content: str) -> str:
         ]
         selected_prompt = random.choice(human_like_prompts)
         
-        response = client.chat.completions.create(
-            model="google/gemma-3n-e4b-it",
-            messages=[{
-                "role": "user",
-                "content": selected_prompt
-            }],
-            temperature=0.95,  # Increased for more variation
+        # Use Hugging Face Inference API (conversational)
+        response = client.chat_completion(
+            messages=[{"role": "user", "content": selected_prompt}],
             max_tokens=150,
-            top_p=0.98,  # Increased for more diversity
+            temperature=0.95,
+            top_p=0.98,
         )
         
         reply = response.choices[0].message.content.strip()
@@ -554,15 +561,12 @@ async def generate_festival_wish_with_ai(festival_name: str) -> str:
         ]
         selected_prompt = random.choice(human_like_prompts)
         
-        response = client.chat.completions.create(
-            model="google/gemma-3n-e4b-it",
-            messages=[{
-                "role": "user",
-                "content": selected_prompt
-            }],
-            temperature=0.9,  # Increased for more variation
+        # Use Hugging Face Inference API (conversational)
+        response = client.chat_completion(
+            messages=[{"role": "user", "content": selected_prompt}],
             max_tokens=150,
-            top_p=0.95,  # Increased for more diversity
+            temperature=0.9,
+            top_p=0.95,
         )
         
         wish = response.choices[0].message.content.strip()
@@ -652,38 +656,45 @@ def get_general_knowledge(content: str) -> Optional[str]:
 async def get_ai_response(prompt: str) -> str:
     """Generate human-like responses using AI API"""
     if client is None:
-        return random.choice(fallback_replies)
+        # Enhanced fallback with service attitude and humor
+        service_fallbacks = [
+            "Bro, I'm here 24/7 ready to serve! What can I help you with today? 😎",
+            "Your wish is my command! Need anything? I'm like your personal digital butler! 🎩",
+            "Ready to assist, boss! Just say the word and I'll make it happen! 💪",
+            "At your service! What's on the agenda today? Let's make magic happen! ✨",
+            "Need help? I'm like the Swiss Army knife of bots - ready for anything! 🔧",
+            "Hello! I'm programmed to make your day better. What can I do for you? 😊",
+            "Sir/madam, how may I assist you today? I'm here to serve and entertain! 🤖"
+        ]
+        return random.choice(service_fallbacks)
     
     try:
-        # Vary the prompt to make responses less predictable and more human-like
-        human_like_prompts = [
-            f"Respond to this like a real person would: '{prompt}'. Be genuine and casual with some personality.",
-            f"Act like a friend replying to this: '{prompt}'. Keep it natural and engaging.",
-            f"Reply to '{prompt}' as if you're texting a buddy. Be authentic with a touch of humor.",
-            f"React to this message like a human would: '{prompt}'. Stay personable and relatable.",
-            f"Answer this as if you're a real person chatting: '{prompt}'. Be conversational and warm.",
-            f"Reply like you're having a conversation with a friend about: '{prompt}'. Be friendly and approachable.",
-            f"Respond as if you're a real person in a chat: '{prompt}'. Be genuine and interesting.",
+        # Enhanced prompts for more realistic, service-oriented, and humorous responses
+        enhanced_prompts = [
+            f"You're a super helpful Discord bot with a funny personality. Someone said: '{prompt}'. Respond like a chill friend who's also your personal assistant. Be helpful, add humor, and maybe throw in some trending slang. Tag the user naturally if needed.",
+            f"Act like a cool bot butler who's also your best friend. Someone messaged: '{prompt}'. Give a helpful response with jokes and casual vibes. Make it feel like you're genuinely excited to help!",
+            f"You're both a service bot and entertainer. Someone said: '{prompt}'. Respond with enthusiasm, helpful advice, and funny commentary. Be like that friend who's always ready to help AND crack jokes.",
+            f"Role: Helpful bot with amazing sense of humor. Message received: '{prompt}'. Reply like you're genuinely excited to assist, add some wit, and make the person feel like they just got VIP treatment.",
+            f"You're a bot who combines excellent customer service with stand-up comedy skills. Someone typed: '{prompt}'. Help them out while keeping things light and entertaining. Think helpful + hilarious!",
+            f"Personality: Super helpful friend-bot with killer comedic timing. Incoming message: '{prompt}'. Provide valuable assistance while being the kind of friend everyone wants - helpful, funny, and totally relatable."
         ]
-        selected_prompt = random.choice(human_like_prompts)
+        selected_prompt = random.choice(enhanced_prompts)
         
-        response = client.chat.completions.create(
-            model="google/gemma-3n-e4b-it",
+        # Use Hugging Face Inference API (conversational)
+        response = client.chat_completion(
             messages=[{"role": "user", "content": selected_prompt}],
-            temperature=0.95,  # Increased for more variation
             max_tokens=200,
-            top_p=0.98,  # Increased for more diversity
+            temperature=0.95,
+            top_p=0.98,
         )
-        
         ai_reply = response.choices[0].message.content
         # Clean up the response to remove any bot-like prefixes
         if ai_reply.startswith("You are a friendly Discord bot") or "as an AI" in ai_reply or "I'm an AI" in ai_reply:
             # Generate a more specific response
-            response = client.chat.completions.create(
-                model="google/gemma-3n-e4b-it",
+            response = client.chat_completion(
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.95,
                 max_tokens=200,
+                temperature=0.95,
                 top_p=0.98,
             )
             ai_reply = response.choices[0].message.content
@@ -923,15 +934,12 @@ async def generate_truth_with_ai() -> str:
         ]
         selected_prompt = random.choice(human_like_prompts)
         
-        response = client.chat.completions.create(
-            model="google/gemma-3n-e4b-it",
-            messages=[{
-                "role": "user",
-                "content": selected_prompt
-            }],
-            temperature=0.9,  # Increased for more variation
+        # Use Hugging Face Inference API (conversational)
+        response = client.chat_completion(
+            messages=[{"role": "user", "content": selected_prompt}],
             max_tokens=100,
-            top_p=0.95,  # Increased for more diversity
+            temperature=0.9,
+            top_p=0.95,
         )
         
         question = response.choices[0].message.content.strip()
@@ -958,15 +966,12 @@ async def generate_dare_with_ai() -> str:
         ]
         selected_prompt = random.choice(human_like_prompts)
         
-        response = client.chat.completions.create(
-            model="google/gemma-3n-e4b-it",
-            messages=[{
-                "role": "user",
-                "content": selected_prompt
-            }],
-            temperature=0.9,  # Increased for more variation
+        # Use Hugging Face Inference API (conversational)
+        response = client.chat_completion(
+            messages=[{"role": "user", "content": selected_prompt}],
             max_tokens=100,
-            top_p=0.95,  # Increased for more diversity
+            temperature=0.9,
+            top_p=0.95,
         )
         
         challenge = response.choices[0].message.content.strip()
@@ -1019,14 +1024,11 @@ async def generate_game_response_with_ai(choice: str, bot_choice: str, result: s
     
     try:
         outcome = "won" if "win" in result else ("lost" if "win" in result.lower() else "tied")
-        response = client.chat.completions.create(
-            model="google/gemma-3n-e4b-it",
-            messages=[{
-                "role": "user",
-                "content": f"Create a fun, human-like response for a Rock Paper Scissors game where the user chose {choice}, bot chose {bot_choice}, and the user {'won' if outcome == 'won' else 'lost' if outcome == 'lost' else 'tied'}. Be casual, friendly and engaging."
-            }],
-            temperature=0.8,
+        # Use Hugging Face Inference API (conversational)
+        response = client.chat_completion(
+            messages=[{"role": "user", "content": f"Create a fun, human-like response for a Rock Paper Scissors game where the user chose {choice}, bot chose {bot_choice}, and the user {'won' if outcome == 'won' else 'lost' if outcome == 'lost' else 'tied'}. Be casual, friendly and engaging."}],
             max_tokens=100,
+            temperature=0.8,
             top_p=0.9,
         )
         
@@ -1210,17 +1212,13 @@ async def generate_youtube_update_with_ai(custom_message: str = None) -> str:
         if custom_message:
             prompt += f" Include this content: {custom_message}"
         
-        response = client.chat.completions.create(
-            model="google/gemma-3n-e4b-it",
-            messages=[{
-                "role": "user",
-                "content": prompt
-            }],
-            temperature=0.7,
+        # Use Hugging Face Inference API (conversational)
+        response = client.chat_completion(
+            messages=[{"role": "user", "content": prompt}],
             max_tokens=100,
+            temperature=0.7,
             top_p=0.9,
         )
-        
         update_msg = response.choices[0].message.content.strip()
         return update_msg
     except Exception as e:
@@ -1468,15 +1466,12 @@ async def generate_joke_with_ai(is_dark: bool = False) -> str:
         
         content = random.choice(human_like_prompts)
         
-        response = client.chat.completions.create(
-            model="google/gemma-3n-e4b-it",
-            messages=[{
-                "role": "user",
-                "content": content
-            }],
-            temperature=0.9,  # Increased for more variation
+        # Use Hugging Face Inference API (conversational)
+        response = client.chat_completion(
+            messages=[{"role": "user", "content": content}],
             max_tokens=150,
-            top_p=0.95,  # Increased for more diversity
+            temperature=0.9,
+            top_p=0.95,
         )
         
         joke = response.choices[0].message.content.strip()
@@ -1492,7 +1487,12 @@ async def generate_joke_with_ai(is_dark: bool = False) -> str:
                 "Why did the scarecrow win an award? He was outstanding in his field! 🌾",
                 "I told my wife she was drawing her eyebrows too high. She looked surprised. 😮",
                 "Why don't skeletons fight each other? They don't have the guts. 💀",
-                "What do you call a fake noodle? An impasta! 🍝"
+                "What do you call a fake noodle? An impasta! 🍝",
+                "Why don't eggs tell jokes? They'd crack each other up! 🥚😂",
+                "I'm reading a book about anti-gravity. It's impossible to put down! 📚🚀",
+                "Why did the math book look sad? Because it had too many problems! 📖😢",
+                "What do you call a bear with no teeth? A gummy bear! 🐻🍬",
+                "Why did the computer go to the doctor? It had a virus! 💻🦠"
             ]
             return random.choice(enhanced_jokes)
         else:
