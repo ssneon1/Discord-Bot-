@@ -1838,5 +1838,8 @@ def run():
     else:
         print("Running in offline mode. Discord functionality is not available.")
 
+# For Render deployment compatibility
+app = run
+
 if __name__ == "__main__":
     run()
