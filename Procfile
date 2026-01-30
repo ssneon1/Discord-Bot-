@@ -1,1 +1,1 @@
-worker: python start_render.py
+worker: gunicorn main:run --bind 0.0.0.0:8000 --workers 1 --timeout 300
