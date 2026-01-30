@@ -9,4 +9,7 @@ services:
         sync: false
       - key: AIML_API_KEY
         sync: false
+      - key: PORT
+        value: "8000"
+        sync: false
         
