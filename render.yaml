@@ -9,6 +9,8 @@ services:
         sync: false
       - key: AIML_API_KEY
         sync: false
+      - key: HUGGING_FACE_TOKEN
+        sync: false
       - key: PORT
         value: "8000"
         sync: false
