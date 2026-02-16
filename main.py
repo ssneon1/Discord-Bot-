@@ -14,9 +14,9 @@ discord_available = True
 try:
     import discord
     from discord.ext import commands, tasks
-except ImportError:
+except (ImportError, Exception) as e:
     discord_available = False
-    print("Warning: Discord library not available")
+    print(f"Warning: Discord library not available. Error: {e}")
 
 from dotenv import load_dotenv
 import wikipedia
