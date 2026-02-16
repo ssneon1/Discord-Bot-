@@ -86,7 +86,14 @@ try:
             model="meta-llama/Llama-3.2-1B-Instruct",
             token=hf_token
         )
-        print("✅ Hugging Face client initialized successfully")
+        # Validate the client with a test call
+        try:
+            client.text_generation("Test", max_new_tokens=1)
+            print("✅ Hugging Face client initialized and verified successfully")
+        except Exception as e:
+            print(f"⚠️ Hugging Face token issue: {e}")
+            print("⚠️ AI features will operate in fallback mode.")
+            client = None
     else:
         print("⚠️ Hugging Face token not found. Using fallback responses.")
         client = None
